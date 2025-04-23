@@ -78,6 +78,7 @@ typedef struct {
         lv_subject_t thermostat_fan_speed;
         /* int:     a value 150-300 in tenths of a degree C, e.g. 225 (for 22.5 degrees celsius)       */
         lv_subject_t thermostat_target_temperature;
+        lv_subject_t cpu_usage_sub;
     } subjects;
 
     /* the object that is created on the active screen which contains the demo contents.
