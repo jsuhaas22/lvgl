@@ -1,0 +1,59 @@
+diff --git a/demos/high_res/lv_demo_high_res_app_hypervisor.c b/demos/high_res/lv_demo_high_res_app_hypervisor.c
+index fb12b1071..e93dcbc57 100644
+--- a/demos/high_res/lv_demo_high_res_app_hypervisor.c
++++ b/demos/high_res/lv_demo_high_res_app_hypervisor.c
+@@ -40,6 +40,8 @@ static const char start_charging_string[] = "Start charging";
+ volatile int inmate_started = 0;
+ volatile int jailhouse_started = 0;
+ static pthread_t hypervisor_thread;
++static lv_obj_t *cpu_label_number = NULL;
++static lv_obj_t *ddr_label_number = NULL;
+ 
+ /**********************
+  *      TYPEDEFS
+@@ -91,6 +93,11 @@ static void start_jailhouse() {
+ 
+ static void start_inmate() {
+     lv_subject_set_int(&global_api->subjects.is_running_sub, 1);
++    if (!cpu_label_number)
++        lv_label_set_text(cpu_label_number, "1");
++    if (!ddr_label_number)
++        lv_label_set_text(ddr_label_number, "997");
++        
+     printf("Starting inmate...\n");
+     //system("jailhouse enable /usr/share/jailhouse/cells/k3-am62p5-sk.cell");
+     system("jailhouse cell create /usr/share/jailhouse/cells/k3-am62l3-evm-linux-demo.cell");
+@@ -102,6 +109,10 @@ static void start_inmate() {
+ }
+ 
+ static void stop_inmate() {
++    if (!cpu_label_number)
++        lv_label_set_text(cpu_label_number, "0");
++    if (!ddr_label_number)
++        lv_label_set_text(ddr_label_number, "0");
+     system("jailhouse cell shutdown 1");
+     system("jailhouse cell destroy 1");
+ }
+@@ -535,6 +546,11 @@ lv_obj_t * sub_box2 = lv_demo_high_res_simple_container_create(info, false, c->s
+ lv_obj_t * label_number = lv_label_create(sub_box2);
+ lv_obj_add_style(label_number, &c->fonts[FONT_LABEL_LG], 0);
+ lv_obj_set_style_text_color(label_number, lv_color_white(), 0);
++if (value == "1")
++    cpu_label_number = label_number;
++else
++    ddr_label_number = label_number;
++
+ lv_label_set_text(label_number, value);
+ 
+ lv_obj_t * label_unit = lv_label_create(sub_box2);
+@@ -741,8 +757,8 @@ static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
+ 
+     lv_obj_t * info_box = lv_demo_high_res_simple_container_create(widget, false, c->sz->gap[5], LV_FLEX_ALIGN_CENTER);
+     lv_obj_set_width(info_box, LV_PCT(100));
+-    create_widget3_info(c, info_box, c->imgs[IMG_TIME_ICON], "CPU cores", "", "1");
+-    create_widget3_info(c, info_box, c->imgs[IMG_ENERGY_ICON], "DDR memory", "MB", "977");
++    create_widget3_info(c, info_box, c->imgs[IMG_TIME_ICON], "CPU cores", "", "0");
++    create_widget3_info(c, info_box, c->imgs[IMG_ENERGY_ICON], "DDR memory", "MB", "0");
+ 
+ }
+ 

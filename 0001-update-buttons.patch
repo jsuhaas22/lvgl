@@ -1,0 +1,166 @@
+From 290dc06a52b1e3fb3e1b0d4a65e31c4e7ede8aee Mon Sep 17 00:00:00 2001
+From: Paresh Bhagat <p-bhagat@ti.com>
+Date: Thu, 24 Apr 2025 15:39:03 +0530
+Subject: [PATCH] update buttons
+
+Signed-off-by: Paresh Bhagat <p-bhagat@ti.com>
+---
+ .../lv_demo_high_res_app_hypervisor.c         | 116 +++++++++++++++++-
+ 1 file changed, 112 insertions(+), 4 deletions(-)
+
+diff --git a/demos/high_res/lv_demo_high_res_app_hypervisor.c b/demos/high_res/lv_demo_high_res_app_hypervisor.c
+index 13ac2ffff..fb12b1071 100644
+--- a/demos/high_res/lv_demo_high_res_app_hypervisor.c
++++ b/demos/high_res/lv_demo_high_res_app_hypervisor.c
+@@ -85,6 +85,7 @@ static long current_time_sec() {
+ 
+ 
+ static void start_jailhouse() {
++    system("modprobe jailhouse");
+     system("jailhouse enable /usr/share/jailhouse/cells/k3-am62l3-evm.cell");
+ }
+ 
+@@ -588,6 +589,100 @@ static void inmate_label_observer(lv_observer_t * observer, lv_subject_t * subje
+     lv_label_set_text_fmt(label, str, lv_subject_get_int(subject));
+ }
+ 
++static lv_obj_t * create_widget3_setting(lv_demo_high_res_ctx_t * c, lv_obj_t * parent, const lv_image_dsc_t * img_dsc,
++    const char * text_val, bool active)
++{
++lv_obj_t * setting = lv_obj_create(parent);
++lv_obj_remove_style_all(setting);
++lv_obj_set_size(setting, c->sz->indicator_width, c->sz->indicator_height);
++lv_obj_set_flex_flow(setting, LV_FLEX_FLOW_COLUMN);
++lv_obj_set_flex_align(setting, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
++lv_obj_set_style_pad_row(setting, 0, 0);
++lv_obj_set_style_bg_color(setting, lv_color_white(), 0);
++lv_obj_set_style_bg_opa(setting, active ? LV_OPA_60 : LV_OPA_20, 0);
++lv_obj_set_style_radius(setting, c->sz->gap[3], 0);
++lv_obj_set_style_pad_all(setting, c->sz->gap[5], 0);
++lv_obj_add_flag(setting, LV_OBJ_FLAG_CLICKABLE);
++
++lv_obj_t * icon = lv_image_create(setting);
++lv_image_set_src(icon, img_dsc);
++lv_image_set_inner_align(icon, LV_IMAGE_ALIGN_CENTER);
++lv_obj_set_size(icon, c->sz->icon[ICON_XL], c->sz->icon[ICON_XL]);
++lv_obj_set_style_bg_color(icon, lv_color_white(), 0);
++lv_obj_set_style_bg_opa(icon, active ? LV_OPA_COVER : LV_OPA_40, 0);
++lv_obj_set_style_radius(icon, LV_COORD_MAX, 0);
++lv_obj_set_style_shadow_width(icon, 50, 0);
++lv_obj_set_style_shadow_opa(icon, 15 * 255 / 100, 0);
++lv_obj_add_flag(icon, LV_OBJ_FLAG_EVENT_BUBBLE);
++
++lv_obj_t * label = lv_label_create(setting);
++lv_label_set_text_static(label, text_val);
++lv_obj_add_style(label, &c->fonts[FONT_LABEL_SM], 0);
++lv_obj_add_style(label, &c->styles[STYLE_COLOR_BASE][STYLE_TYPE_TEXT], 0);
++
++return setting;
++}
++
++static void widget3_setting_clicked_cb(lv_event_t * e)
++{
++lv_obj_t * setting = lv_event_get_target_obj(e);
++lv_obj_t * setting_box = lv_obj_get_parent(setting);
++lv_obj_t * setting1 = lv_obj_get_child(setting_box, 0);
++lv_obj_t * setting2 = lv_obj_get_child(setting_box, 1);
++static int button_pressed = 0;
++
++if(setting == setting1) {
++
++
++    lv_event_code_t code = lv_event_get_code(e);
++    if (code == LV_EVENT_PRESSED) {
++        button_pressed = 1;
++        lv_obj_set_style_bg_opa(setting1, LV_OPA_60, 0);
++        lv_obj_set_style_bg_opa(lv_obj_get_child(setting1, 0), LV_OPA_COVER, 0);
++        lv_obj_set_style_bg_opa(setting2, LV_OPA_20, 0);
++        lv_obj_set_style_bg_opa(lv_obj_get_child(setting2, 0), LV_OPA_40, 0);
++    } else if (code == LV_EVENT_RELEASED) {
++        button_pressed = 0;
++        lv_obj_set_style_bg_opa(setting1, LV_OPA_20, 0);
++        lv_obj_set_style_bg_opa(lv_obj_get_child(setting1, 0), LV_OPA_40, 0);
++        lv_obj_set_style_bg_opa(setting2, LV_OPA_60, 0);
++        lv_obj_set_style_bg_opa(lv_obj_get_child(setting2, 0), LV_OPA_COVER, 0);
++    } else if (code == LV_EVENT_CLICKED && !button_pressed) {
++        printf("CALLED JAILHOUSE START\n");
++        jailhouse_started = 1;
++        lv_subject_set_int(&global_api->subjects.is_running_sub, 1);
++        pthread_create(&hypervisor_thread, NULL, hypervisor_init, global_api);
++    }
++
++}
++else if(setting == setting2) {
++
++    lv_obj_set_style_bg_opa(setting1, LV_OPA_20, 0);
++    lv_obj_set_style_bg_opa(lv_obj_get_child(setting1, 0), LV_OPA_40, 0);
++    lv_obj_set_style_bg_opa(setting2, LV_OPA_60, 0);
++    lv_obj_set_style_bg_opa(lv_obj_get_child(setting2, 0), LV_OPA_COVER, 0);
++
++    lv_event_code_t code = lv_event_get_code(e);
++    if (code == LV_EVENT_CLICKED) {
++        lv_subject_set_int(&global_api->subjects.is_running_sub, 0);
++        printf("CALLED THIS\n");
++        if (inmate_started == 0)
++            return;
++        lv_subject_set_int(&global_api->subjects.cpu_usage_sub, 0);
++        lv_subject_set_int(&global_api->subjects.ddr_usage_sub, 0);
++        system("timeout 3 echo \"\" > /root/.ssh/known_hosts");
++        system("timeout 3 ssh -y root@192.168.0.3 \"echo c > /proc/sysrq-trigger\"");
++        inmate_started = 0;
++//        run_server();
++    }
++}
++}
++
++static void widget3_scale_and_arc_box_ext_draw_size_event_cb(lv_event_t * e)
++{
++lv_event_set_ext_draw_size(e, 100);
++}
++
+ static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
+ {
+     lv_obj_t * widget = lv_obj_create(widgets);
+@@ -611,7 +706,20 @@ static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
+     lv_obj_set_flex_flow(cluster_1, LV_FLEX_FLOW_ROW);
+     lv_obj_set_flex_align(cluster_1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+     lv_obj_set_style_pad_column(cluster_1, 0, 0);
+-
++    
++    lv_obj_t * setting_box = lv_obj_create(widget);
++    lv_obj_remove_style_all(setting_box);
++    lv_obj_set_size(setting_box, LV_PCT(100), LV_SIZE_CONTENT);
++    lv_obj_set_flex_flow(setting_box, LV_FLEX_FLOW_ROW);
++    lv_obj_set_flex_align(setting_box, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
++    lv_obj_set_style_pad_column(setting_box, 0, 0);
++
++    lv_obj_t * setting1 = create_widget3_setting(c, setting_box, c->imgs[IMG_COLD_ICON], "Start", true);
++    lv_obj_t * setting2 = create_widget3_setting(c, setting_box, c->imgs[IMG_DRY_ICON], "Crash", false);
++
++    lv_obj_add_event_cb(setting1, widget3_setting_clicked_cb, LV_EVENT_CLICKED, NULL);
++    lv_obj_add_event_cb(setting2, widget3_setting_clicked_cb, LV_EVENT_CLICKED, NULL);
++    /*
+     lv_obj_t * start_btn = lv_button_create(cluster_1);
+ //    lv_obj_align(start_btn, LV_ALIGN_CENTER, 0, 0);
+     lv_obj_set_size(start_btn, LV_PCT(50), LV_SIZE_CONTENT);
+@@ -627,14 +735,14 @@ static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
+     lv_obj_t * crash_btn_label = lv_label_create(crash_btn);
+     lv_label_set_text(crash_btn_label, "Crash");
+     lv_obj_center(crash_btn_label);
+-
++    */
+     lv_obj_t * lightbulbs_box = create_widget5_lightbulbs(c, cluster_1);
+     lv_obj_set_flex_grow(lightbulbs_box, 1);
+ 
+     lv_obj_t * info_box = lv_demo_high_res_simple_container_create(widget, false, c->sz->gap[5], LV_FLEX_ALIGN_CENTER);
+     lv_obj_set_width(info_box, LV_PCT(100));
+-    create_widget3_info(c, info_box, c->imgs[IMG_TIME_ICON], "CPU cores", "h", "1");
+-    create_widget3_info(c, info_box, c->imgs[IMG_ENERGY_ICON], "DDR memory", "MB", "1001364");
++    create_widget3_info(c, info_box, c->imgs[IMG_TIME_ICON], "CPU cores", "", "1");
++    create_widget3_info(c, info_box, c->imgs[IMG_ENERGY_ICON], "DDR memory", "MB", "977");
+ 
+ }
+ 
+-- 
+2.34.1
+
