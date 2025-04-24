@@ -29,6 +29,7 @@
 #include "../../src/widgets/arc/lv_arc.h"
 #include "../../src/widgets/switch/lv_switch.h"
 #include "../../src/widgets/arc/lv_arc.h"
+#include "../../src/widgets/button/lv_button.h"
 
 /*********************
  *  Global variables
@@ -493,7 +494,7 @@ static lv_obj_t * create_widget5_lightbulbs(lv_demo_high_res_ctx_t * c, lv_obj_t
 }
 
 static lv_obj_t * create_widget3_info(lv_demo_high_res_ctx_t * c, lv_obj_t * parent, const lv_image_dsc_t * img_dsc,
-    const char * text, const char * unit)
+    const char * text, const char * unit, const char *value)
 {
 lv_obj_t * info = lv_obj_create(parent);
 lv_obj_remove_style_all(info);
@@ -523,6 +524,7 @@ lv_obj_t * sub_box2 = lv_demo_high_res_simple_container_create(info, false, c->s
 lv_obj_t * label_number = lv_label_create(sub_box2);
 lv_obj_add_style(label_number, &c->fonts[FONT_LABEL_LG], 0);
 lv_obj_set_style_text_color(label_number, lv_color_white(), 0);
+lv_label_set_text(label_number, value);
 
 lv_obj_t * label_unit = lv_label_create(sub_box2);
 lv_label_set_text_static(label_unit, unit);
@@ -558,16 +560,31 @@ static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
     lv_obj_set_size(cluster_1, LV_PCT(100), LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(cluster_1, LV_FLEX_FLOW_ROW);
     lv_obj_set_flex_align(cluster_1, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-    lv_obj_set_style_pad_column(cluster_1, c->sz->gap[9], 0);
+    lv_obj_set_style_pad_column(cluster_1, 0, 0);
 
+    lv_obj_t * start_btn = lv_button_create(cluster_1);
+//    lv_obj_align(start_btn, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_size(start_btn, LV_PCT(50), LV_SIZE_CONTENT);
+    lv_obj_add_event_cb(start_btn, NULL, LV_EVENT_ALL, NULL);
+    lv_obj_t * start_btn_label = lv_label_create(start_btn);
+    lv_label_set_text(start_btn_label, "Start");
+    lv_obj_center(start_btn_label);
+
+    lv_obj_t * crash_btn = lv_button_create(cluster_1);
+//    lv_obj_align(start_btn, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_size(crash_btn, LV_PCT(50), LV_SIZE_CONTENT);
+    lv_obj_add_event_cb(crash_btn, NULL, LV_EVENT_ALL, NULL);
+    lv_obj_t * crash_btn_label = lv_label_create(crash_btn);
+    lv_label_set_text(crash_btn_label, "Crash");
+    lv_obj_center(crash_btn_label);
 
     lv_obj_t * lightbulbs_box = create_widget5_lightbulbs(c, cluster_1);
     lv_obj_set_flex_grow(lightbulbs_box, 1);
 
     lv_obj_t * info_box = lv_demo_high_res_simple_container_create(widget, false, c->sz->gap[5], LV_FLEX_ALIGN_CENTER);
     lv_obj_set_width(info_box, LV_PCT(100));
-    create_widget3_info(c, info_box, c->imgs[IMG_TIME_ICON], "CPU cores", "h");
-    create_widget3_info(c, info_box, c->imgs[IMG_ENERGY_ICON], "DDR memory", "MB");
+    create_widget3_info(c, info_box, c->imgs[IMG_TIME_ICON], "CPU cores", "h", "1");
+    create_widget3_info(c, info_box, c->imgs[IMG_ENERGY_ICON], "DDR memory", "MB", "1001364");
 
 }
 
