@@ -166,8 +166,6 @@ static void run_server()
         long last_recv_time = current_time_sec();
         char line[256];
 
-        lv_subject_init_int(&global_api->subjects.cpu_usage_sub, 0);
-        lv_subject_init_int(&global_api->subjects.ddr_usage_sub, 0);
 
         // Step 3: Receive loop
         while (1) {
@@ -248,6 +246,8 @@ int *hypervisor_init(lv_demo_high_res_api_t* api)
     return NULL; */
 
     global_api = api;
+    lv_subject_init_int(&global_api->subjects.cpu_usage_sub, 0);
+    lv_subject_init_int(&global_api->subjects.ddr_usage_sub, 0);
     run_server();
 }
 
