@@ -89,6 +89,7 @@ static void start_jailhouse() {
 }
 
 static void start_inmate() {
+    lv_subject_set_int(&global_api->subjects.is_running_sub, 1);
     printf("Starting inmate...\n");
     //system("jailhouse enable /usr/share/jailhouse/cells/k3-am62p5-sk.cell");
     system("jailhouse cell create /usr/share/jailhouse/cells/k3-am62l3-evm-linux-demo.cell");
@@ -262,6 +263,7 @@ void lv_demo_high_res_app_hypervisor(lv_obj_t * base_obj)
     global_api = &c->api;
     lv_subject_init_int(&global_api->subjects.cpu_usage_sub, 0);
     lv_subject_init_int(&global_api->subjects.ddr_usage_sub, 0);
+    lv_subject_init_int(&global_api->subjects.is_running_sub, 0);
 
     /* background */
 
@@ -551,6 +553,7 @@ static void widget5_crash_btn_cb(lv_event_t * e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_CLICKED) {
+        lv_subject_set_int(&global_api->subjects.is_running_sub, 0);
         printf("CALLED THIS\n");
         if (inmate_started == 0)
             return;
@@ -569,8 +572,20 @@ static void widget5_start_btn_cb(lv_event_t * e)
     if (!jailhouse_started && code == LV_EVENT_CLICKED) {
         printf("CALLED JAILHOUSE START\n");
         jailhouse_started = 1;
+        lv_subject_set_int(&global_api->subjects.is_running_sub, 1);
         pthread_create(&hypervisor_thread, NULL, hypervisor_init, global_api);
     }
+}
+
+static void inmate_label_observer(lv_observer_t * observer, lv_subject_t * subject)
+{
+    lv_obj_t * label = lv_observer_get_target_obj(observer);
+    char *str;
+    if (lv_subject_get_int(subject) == 0)
+        str = "Inmate Status: Not Running";
+    else
+        str = "Inmate Status: Running";
+    lv_label_set_text_fmt(label, str, lv_subject_get_int(subject));
 }
 
 static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
@@ -585,7 +600,8 @@ static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
     lv_obj_set_flex_align(widget, LV_FLEX_ALIGN_SPACE_BETWEEN, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
 
     lv_obj_t * title_label = lv_label_create(widget);
-    lv_label_set_text_static(title_label, "Inmate");
+//    lv_label_set_text_static(title_label, "Inmate");
+    lv_subject_add_observer_obj(&global_api->subjects.is_running_sub, inmate_label_observer, title_label, NULL);
     lv_obj_add_style(title_label, &c->fonts[FONT_LABEL_MD], 0);
     lv_obj_add_style(title_label, &c->styles[STYLE_COLOR_BASE][STYLE_TYPE_TEXT], 0);
 

@@ -80,6 +80,7 @@ typedef struct {
         lv_subject_t thermostat_target_temperature;
         lv_subject_t cpu_usage_sub;
         lv_subject_t ddr_usage_sub;
+        lv_subject_t is_running_sub;
     } subjects;
 
     /* the object that is created on the active screen which contains the demo contents.
