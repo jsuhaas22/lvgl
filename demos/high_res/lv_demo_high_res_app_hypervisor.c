@@ -193,11 +193,13 @@ static void run_server()
                 }
                 buffer[bytes] = '\0';
                 float cpu_usage; 
-                int mem_total, mem_free;
+                float mem_total, mem_free;
                 printf("Received: %s", buffer);
-                sscanf(buffer, "CPU: %f | MemTotal: %d | MemFree: %d", &cpu_usage, &mem_total, &mem_free);
+                sscanf(buffer, "CPU: %f | MemTotal: %f | MemFree: %f", &cpu_usage, &mem_total, &mem_free);
                 printf("CPU USAGE LVGL: %.2f\n", cpu_usage);
-                int ddr_usage = ((mem_total - mem_free) / mem_total) * 100;
+                float ddr_usage_f = ((mem_total - mem_free) / mem_total);
+//                int ddr_usage = ((mem_total - mem_free) / 10240);
+                int ddr_usage = ddr_usage_f * 100;
                 lv_subject_set_int(&global_api->subjects.cpu_usage_sub, cpu_usage * 100);
                 lv_subject_set_int(&global_api->subjects.ddr_usage_sub, ddr_usage);
                 printf("GLOBAL API: %d\n", lv_subject_get_int(&global_api->subjects.cpu_usage_sub));
@@ -420,7 +422,7 @@ static void charging_time_until_full_label_observer(lv_observer_t * observer, lv
 {
     lv_obj_t * label = lv_observer_get_target_obj(observer);
     int32_t v_range_time_to_full = 100 - lv_subject_get_int(subject);
-    lv_label_set_text_fmt(label, "%"LV_PRId32".%"LV_PRId32, v_range_time_to_full);
+    lv_label_set_text_fmt(label, "%"LV_PRId32"%%", v_range_time_to_full);
 }
 
 static void create_widget_charging(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
@@ -465,7 +467,7 @@ static void create_widget_charging(lv_demo_high_res_ctx_t * c, lv_obj_t * widget
     lv_obj_set_style_text_color(percent_label, lv_color_white(), 0);
     lv_obj_center(percent_label);
     //lv_subject_add_observer_obj(&c->ev_charging_progress, charging_percent_label_observer, percent_label, NULL);
-    lv_subject_add_observer_obj(&c->api.subjects.ddr_usage_sub, charging_percent_label_observer, percent_label, NULL);
+    lv_subject_add_observer_obj(&global_api->subjects.ddr_usage_sub, charging_percent_label_observer, percent_label, NULL);
 
     lv_obj_t * num_label_cont = lv_demo_high_res_simple_container_create(widget,
                                                                          false,
@@ -476,8 +478,8 @@ static void create_widget_charging(lv_demo_high_res_ctx_t * c, lv_obj_t * widget
     lv_obj_t * time_to_full_num_label = lv_label_create(num_label_cont);
     lv_obj_add_style(time_to_full_num_label, &c->fonts[FONT_LABEL_XL], 0);
     lv_obj_set_style_text_color(time_to_full_num_label, lv_color_white(), 0);
-//    lv_subject_add_observer_obj(&c->ev_charging_progress, charging_time_until_full_label_observer, time_to_full_num_label,
- //                               NULL);
+    lv_subject_add_observer_obj(&global_api->subjects.ddr_usage_sub, charging_time_until_full_label_observer, time_to_full_num_label,
+                                NULL);
 }
 
 static lv_obj_t * create_widget5_lightbulbs(lv_demo_high_res_ctx_t * c, lv_obj_t * parent)
