@@ -37,6 +37,7 @@
 extern pthread_mutex_t playing_now_lock;
 extern int playing_now;
 static const char start_charging_string[] = "Start charging";
+volatile int inmate_started = 0;
 
 /**********************
  *      TYPEDEFS
@@ -165,6 +166,8 @@ static void run_server()
         printf("Inmate connected.\n");
         long last_recv_time = current_time_sec();
         char line[256];
+
+        inmate_started = 1;
 
 
         // Step 3: Receive loop
@@ -539,6 +542,22 @@ static void charging_status_box_clicked_cb(lv_event_t * e)
 {
 }
 
+static void widget5_crash_btn_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        printf("CALLED THIS\n");
+        if (inmate_started == 0)
+            return;
+        lv_subject_set_int(&global_api->subjects.cpu_usage_sub, 0);
+        lv_subject_set_int(&global_api->subjects.ddr_usage_sub, 0);
+        system("timeout 3 echo \"\" > /root/.ssh/known_hosts");
+        system("timeout 3 ssh -y root@192.168.0.3 \"echo c > /proc/sysrq-trigger\"");
+        inmate_started = 0;
+//        run_server();
+    }
+}
+
 static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
 {
     lv_obj_t * widget = lv_obj_create(widgets);
@@ -573,7 +592,7 @@ static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
     lv_obj_t * crash_btn = lv_button_create(cluster_1);
 //    lv_obj_align(start_btn, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_size(crash_btn, LV_PCT(50), LV_SIZE_CONTENT);
-    lv_obj_add_event_cb(crash_btn, NULL, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(crash_btn, widget5_crash_btn_cb, LV_EVENT_ALL, NULL);
     lv_obj_t * crash_btn_label = lv_label_create(crash_btn);
     lv_label_set_text(crash_btn_label, "Crash");
     lv_obj_center(crash_btn_label);
