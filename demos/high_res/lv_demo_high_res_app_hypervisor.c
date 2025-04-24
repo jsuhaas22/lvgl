@@ -38,6 +38,8 @@ extern pthread_mutex_t playing_now_lock;
 extern int playing_now;
 static const char start_charging_string[] = "Start charging";
 volatile int inmate_started = 0;
+volatile int jailhouse_started = 0;
+static pthread_t hypervisor_thread;
 
 /**********************
  *      TYPEDEFS
@@ -217,7 +219,7 @@ static void run_server()
     }
 }
 
-int *hypervisor_init(lv_demo_high_res_api_t* api)
+void *hypervisor_init(void* api)
 {
     printf("Hypervisor init called!\n");
 /*    if (access("/usr/share/jailhouse/root2", F_OK)) {
@@ -248,15 +250,16 @@ int *hypervisor_init(lv_demo_high_res_api_t* api)
     }
     return NULL; */
 
-    global_api = api;
-    lv_subject_init_int(&global_api->subjects.cpu_usage_sub, 0);
-    lv_subject_init_int(&global_api->subjects.ddr_usage_sub, 0);
+    global_api = (lv_demo_high_res_api_t*)api;
     run_server();
 }
 
 void lv_demo_high_res_app_hypervisor(lv_obj_t * base_obj)
 {
     lv_demo_high_res_ctx_t * c = lv_obj_get_user_data(base_obj);
+    global_api = &c->api;
+    lv_subject_init_int(&global_api->subjects.cpu_usage_sub, 0);
+    lv_subject_init_int(&global_api->subjects.ddr_usage_sub, 0);
 
     /* background */
 
@@ -558,6 +561,16 @@ static void widget5_crash_btn_cb(lv_event_t * e)
     }
 }
 
+static void widget5_start_btn_cb(lv_event_t * e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (!jailhouse_started && code == LV_EVENT_CLICKED) {
+        printf("CALLED JAILHOUSE START\n");
+        jailhouse_started = 1;
+        pthread_create(&hypervisor_thread, NULL, hypervisor_init, global_api);
+    }
+}
+
 static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
 {
     lv_obj_t * widget = lv_obj_create(widgets);
@@ -584,7 +597,7 @@ static void create_widget5(lv_demo_high_res_ctx_t * c, lv_obj_t * widgets)
     lv_obj_t * start_btn = lv_button_create(cluster_1);
 //    lv_obj_align(start_btn, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_size(start_btn, LV_PCT(50), LV_SIZE_CONTENT);
-    lv_obj_add_event_cb(start_btn, NULL, LV_EVENT_ALL, NULL);
+    lv_obj_add_event_cb(start_btn, widget5_start_btn_cb, LV_EVENT_ALL, NULL);
     lv_obj_t * start_btn_label = lv_label_create(start_btn);
     lv_label_set_text(start_btn_label, "Start");
     lv_obj_center(start_btn_label);

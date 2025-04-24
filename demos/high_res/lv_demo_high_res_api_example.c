@@ -35,7 +35,7 @@ static pthread_t clock_thread;
 static pthread_t button_thread;
 static pthread_t led_thread;
 static pthread_t adc_thread;
-static pthread_t hypervisor_thread;
+//static pthread_t hypervisor_thread;
 static void exit_cb(int sig);
 static void output_subject_observer_cb(lv_observer_t * observer, lv_subject_t * subject);
 
@@ -139,7 +139,7 @@ void lv_demo_high_res_api_example(const char * assets_path, const char * logo_pa
 //    pthread_create(&led_thread, NULL, led_blink, NULL);
 //    pthread_create(&button_thread, NULL, button_init, (void*)api);
 //    pthread_create(&adc_thread, NULL, adc_init, api);
-    pthread_create(&hypervisor_thread, NULL, hypervisor_init, api);
+//    pthread_create(&hypervisor_thread, NULL, hypervisor_init, api);
 }
 
 /**********************
